@@ -1,0 +1,9 @@
+setup.cfg
+setup.py
+Sancus.egg-info/PKG-INFO
+Sancus.egg-info/SOURCES.txt
+Sancus.egg-info/dependency_links.txt
+Sancus.egg-info/entry_points.txt
+Sancus.egg-info/not-zip-safe
+Sancus.egg-info/top_level.txt
+sancus/__init__.py

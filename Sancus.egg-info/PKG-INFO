@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: Sancus
+Version: 0.1dev
+Summary: Another RESTful Web Framework
+Home-page: https://github.com/amery/sancus-python
+Author: Alejandro Mery
+Author-email: amery@geeks.cl
+License: MIT
+Description: Another RESTful Web Framework but made my way
+Keywords: WSGI RESTful Framework
+Platform: UNKNOWN
