@@ -15,7 +15,7 @@ class WSGIResource(object):
         return None
 
     def HEAD(self, environ, start_response):
-        h = __method_handler('GET')
+        h = self.__method_handler('GET')
         if h:
             return h(environ, start_response)
 
