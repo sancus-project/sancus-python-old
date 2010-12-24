@@ -6,14 +6,18 @@ class WSGIResource(object):
 
     __methods__ = ('GET', 'POST', 'PUT', 'DELETE')
 
-    def __call__(self, environ, start_response):
-        method = environ['REQUEST_METHOD']
-
+    def __method_handler(self, method):
         if method in self.__methods__:
             if hasattr(self, method):
                 h = getattr(self, method)
                 if callable(h):
-                    return h(environ, start_response)
+                    return h
+        return None
+
+    def __call__(self, environ, start_response):
+        h = self.__method_handler(environ['REQUEST_METHOD'])
+        if h:
+            return h(environ, start_response)
 
         raise self.handle405
 
