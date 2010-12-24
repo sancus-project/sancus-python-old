@@ -4,7 +4,7 @@ class WSGIResource(object):
     handle404 = HTTPNotFound()
     handle405 = HTTPMethodNotAllowed()
 
-    __methods__ = ('GET', 'POST', 'PUT', 'DELETE')
+    __methods__ = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
     def __method_handler(self, method):
         if method in self.__methods__:
@@ -13,6 +13,13 @@ class WSGIResource(object):
                 if callable(h):
                     return h
         return None
+
+    def HEAD(self, environ, start_response):
+        h = __method_handler('GET')
+        if h:
+            return h(environ, start_response)
+
+        raise self.handle405
 
     def __call__(self, environ, start_response):
         h = self.__method_handler(environ['REQUEST_METHOD'])
