@@ -1,4 +1,5 @@
-from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed
+from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
+from pprint import pprint as pp
 
 class WSGIResource(object):
     handle404 = HTTPNotFound()
@@ -17,3 +18,21 @@ class WSGIResource(object):
                     handler = h
 
         return handler(environ, start_response)
+
+class WSGILeafResource(WSGIResource):
+    def __call__(self, environ, start_response):
+        path_info = environ['PATH_INFO']
+
+        if len(path_info) == 0:
+            # move on
+            return WSGIResource.__call__(self, environ, start_response)
+        elif path_info == '/' and environ['REQUEST_METHOD'] == 'GET':
+            # remove trailing slash for GETs
+            h = HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
+            qs = environ['QUERY_STRING']
+            if len(qs) > 0:
+                h.location += "?" + qs
+            return h(environ, start_response)
+        else:
+            # don't accept PATH_INFO in leaves
+            return self.handle404(environ, start_response)
