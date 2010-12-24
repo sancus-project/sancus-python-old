@@ -1,5 +1,4 @@
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
-from pprint import pprint as pp
 
 class WSGIResource(object):
     handle404 = HTTPNotFound()
