@@ -8,15 +8,14 @@ class WSGIResource(object):
 
     def __call__(self, environ, start_response):
         method = environ['REQUEST_METHOD']
-        handler = self.handle405
 
         if method in self.__methods__:
             if hasattr(self, method):
                 h = getattr(self, method)
                 if callable(h):
-                    handler = h
+                    return h(environ, start_response)
 
-        return handler(environ, start_response)
+        raise self.handle405
 
 class WSGILeafResource(WSGIResource):
     def __call__(self, environ, start_response):
@@ -31,7 +30,7 @@ class WSGILeafResource(WSGIResource):
             qs = environ['QUERY_STRING']
             if len(qs) > 0:
                 h.location += "?" + qs
-            return h(environ, start_response)
+            raise h
         else:
             # don't accept PATH_INFO in leaves
-            return self.handle404(environ, start_response)
+            raise self.handle404
