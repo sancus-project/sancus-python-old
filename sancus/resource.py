@@ -1,5 +1,30 @@
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
 
+class WSGIHeadify(object):
+    def __init__(self, app):
+        self.app = app
+
+    def start_response(self, status, response_headers, exc_info=None):
+        self.status = status
+        self.headers = response_headers
+        self.exc_info = exc_info
+
+    def __call__(self, environ, start_response):
+        has_length = False
+        app_iter = self.app(environ, self.start_response)
+
+        for k,v in self.headers:
+            if k.lower() == 'content-length':
+                has_length = True
+                break
+
+        if not has_length:
+            body = ''.join(app_iter)
+            self.headers.append(('Content-Length', len(body)))
+
+        start_response(self.status, self.headers)
+        return []
+
 class WSGIResource(object):
     handle404 = HTTPNotFound()
     handle405 = HTTPMethodNotAllowed()
@@ -17,6 +42,7 @@ class WSGIResource(object):
     def HEAD(self, environ, start_response):
         h = self.__method_handler('GET')
         if h:
+            h = WSGIHeadify(h)
             return h(environ, start_response)
 
         raise self.handle405
