@@ -20,7 +20,8 @@ class WSGIHeadify(object):
 
         if not has_length:
             body = ''.join(app_iter)
-            self.headers.append(('Content-Length', len(body)))
+            body_len = str(len(body))
+            self.headers.append(('Content-Length', body_len))
 
         start_response(self.status, self.headers)
         return []
