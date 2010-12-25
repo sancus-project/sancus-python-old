@@ -62,7 +62,7 @@ class WSGILeafResource(WSGIResource):
         if len(path_info) == 0:
             # move on
             return WSGIResource.__call__(self, environ, start_response)
-        elif path_info == '/' and environ['REQUEST_METHOD'] == 'GET':
+        elif path_info == '/' and environ['REQUEST_METHOD'] in ('HEAD','GET'):
             # remove trailing slash for GETs
             h = HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
             qs = environ['QUERY_STRING']
