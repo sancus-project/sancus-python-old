@@ -11,7 +11,13 @@ class WSGIHeadify(object):
 
     def __call__(self, environ, start_response):
         has_length = False
-        app_iter = self.app(environ, self.start_response)
+
+        environ['REQUEST_METHOD'] = 'GET'
+        try:
+            app_iter = self.app(environ, self.start_response)
+        except:
+            environ['REQUEST_METHOD'] = 'HEAD'
+            raise
 
         for k,v in self.headers:
             if k.lower() == 'content-length':
@@ -23,6 +29,7 @@ class WSGIHeadify(object):
             body_len = str(len(body))
             self.headers.append(('Content-Length', body_len))
 
+        environ['REQUEST_METHOD'] = 'HEAD'
         start_response(self.status, self.headers)
         return []
 
