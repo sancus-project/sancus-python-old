@@ -12,6 +12,13 @@ class WSGIMapper(object):
     def __call__(self, environ, start_response):
         app = self.find_handler(environ)
         if app:
+            if app[0]:
+                # factory
+                app = app[1](environ)
+            else:
+                # direct
+                app = app[1]
+
             return app(environ, start_response)
         elif self.handle404:
             return self.handle404(environ, start_response)
@@ -21,7 +28,8 @@ class WSGIMapper(object):
     def find_handler(self, environ):
         raise NotImplementedError("weak method")
 
-    def add_regex(self, expr, handler):
+    def add_regex(self, expr, handler, factory=True):
+        handler = (factory, handler)
         self.patterns.append((re.compile(expr), handler))
 
 class PathMapper(WSGIMapper):
