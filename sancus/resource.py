@@ -1,81 +1,61 @@
+from webob import Request, Response
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
 
-class WSGIHeadify(object):
-    def __init__(self, app):
-        self.app = app
-
-    def start_response(self, status, response_headers, exc_info=None):
-        self.status = status
-        self.headers = response_headers
-        self.exc_info = exc_info
-
-    def __call__(self, environ, start_response):
-        has_length = False
-
-        environ['REQUEST_METHOD'] = 'GET'
-        try:
-            app_iter = self.app(environ, self.start_response)
-        except:
-            environ['REQUEST_METHOD'] = 'HEAD'
-            raise
-
-        for k,v in self.headers:
-            if k.lower() == 'content-length':
-                has_length = True
-                break
-
-        if not has_length:
-            body = ''.join(app_iter)
-            body_len = str(len(body))
-            self.headers.append(('Content-Length', body_len))
-
-        environ['REQUEST_METHOD'] = 'HEAD'
-        start_response(self.status, self.headers)
-        return []
-
-class WSGIResource(object):
-    handle404 = HTTPNotFound()
-    handle405 = HTTPMethodNotAllowed()
-
+class Resource(Response):
     __methods__ = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
-    def __method_handler(self, method):
-        if method in self.__methods__:
-            if hasattr(self, method):
-                h = getattr(self, method)
-                if callable(h):
-                    return h
-        return None
+    HTTPMovedPermanently = HTTPMovedPermanently
+    HTTPNotFound = HTTPNotFound
 
-    def HEAD(self, environ, start_response):
-        h = self.__method_handler('GET')
-        if h:
-            h = WSGIHeadify(h)
-            return h(environ, start_response)
+    def HTTPMethodNotAllowed(self, *d, **kw):
+        return HTTPMethodNotAllowed(allow = self.allowed_methods(), *d, **kw)
 
-        raise self.handle405
+    def allowed_methods(self):
+        try:
+            return type(self).__allowed_methods__
+        except:
+            l = []
 
-    def __call__(self, environ, start_response):
-        h = self.__method_handler(environ['REQUEST_METHOD'])
-        if h:
-            return h(environ, start_response)
+        for method in self.__methods__:
+            # no 'HEAD' if not 'GET'
+            if method == 'HEAD' and 'GET' not in l:
+                continue
+            # self.FOO must exist and be callable
+            if callable(getattr(self, method, None)):
+                l.append(method)
 
-        raise self.handle405
+        type(self).__allowed_methods__ = l
+        return l
 
-class WSGILeafResource(WSGIResource):
-    def __call__(self, environ, start_response):
+    def HEAD(self, req):
+        self.GET(req)
+
+    def __init__(self, environ, *d, **kw):
+        method = environ['REQUEST_METHOD']
+        if method not in self.allowed_methods():
+            raise self.HTTPMethodNotAllowed()
+
+        h = getattr(self, method)
+
+        Response.__init__(self, *d, **kw)
+        self.allow = self.allowed_methods()
+
+        h(Request(environ))
+
+class LeafResource(Resource):
+    def __init__(self, environ, *d, **kw):
         path_info = environ['PATH_INFO']
 
         if len(path_info) == 0:
             # move on
-            return WSGIResource.__call__(self, environ, start_response)
+            return Resource.__init__(self, environ, *d, **kw)
         elif path_info == '/' and environ['REQUEST_METHOD'] in ('HEAD','GET'):
             # remove trailing slash for GETs
-            h = HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
+            h = self.HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
             qs = environ['QUERY_STRING']
             if len(qs) > 0:
                 h.location += "?" + qs
             raise h
         else:
             # don't accept PATH_INFO in leaves
-            raise self.handle404
+            raise self.HTTPNotFound()
