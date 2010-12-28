@@ -32,6 +32,14 @@ class WSGIMapper(object):
         handler = (factory, handler)
         self.patterns.append((re.compile(expr), handler))
 
+    # decorators
+    #
+    def class_dec_add(self, pattern):
+        def wrap(cls):
+            self.add_regex(pattern, cls)
+            return cls
+        return wrap
+
 class PathMapper(WSGIMapper):
 
     def find_handler(self, environ):
