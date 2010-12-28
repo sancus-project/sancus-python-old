@@ -1,17 +1,24 @@
 # -*- coding: utf-8 -*-
 #
 
-from sqlalchemy.types import TypeDecorator, BLOB
+from sqlalchemy.types import TypeDecorator, TypeEngine
 from sqlalchemy import Column
+
+import sqlalchemy.dialects.postgresql as pg
+import sqlalchemy.types as sa
 
 import uuid
 
 class UUID(TypeDecorator):
-    impl = BLOB
+    impl = TypeEngine   # placeholder
 
-    def __init__(self):
-        self.impl.length = 16
-        TypeDecorator.__init__(self, length=self.impl.length)
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            t = pg.UUID()
+        else:
+            t = sa.BLOB(16)
+
+        return dialect.type_descriptor(t)
 
     def process_bind_param(self, value, dialect):
         if not value:
@@ -22,10 +29,10 @@ class UUID(TypeDecorator):
             raise ValueError, "value %s is not a valid UUID" % value
 
     def process_result_value(self, value, dialect):
-        if value:
-            return uuid.UUID(bytes=value)
-        else:
+        if not value:
             return None
+        else:
+            return uuid.UUID(bytes=value)
 
     def is_mutable(self):
         return False
