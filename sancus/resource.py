@@ -1,7 +1,7 @@
 from webob import Request, Response
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
 
-class Resource(Response):
+class BaseResource(Response):
     __methods__ = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
     HTTPMovedPermanently = HTTPMovedPermanently
@@ -42,13 +42,13 @@ class Resource(Response):
 
         h(Request(environ))
 
-class LeafResource(Resource):
+class Resource(BaseResource):
     def __init__(self, environ, *d, **kw):
         path_info = environ['PATH_INFO']
 
         if len(path_info) == 0:
             # move on
-            return Resource.__init__(self, environ, *d, **kw)
+            return BaseResource.__init__(self, environ, *d, **kw)
         elif path_info == '/' and environ['REQUEST_METHOD'] in ('HEAD','GET'):
             # remove trailing slash for GETs
             h = self.HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
