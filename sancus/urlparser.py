@@ -4,8 +4,8 @@ import logging
 logger = logging.getLogger('sancus.urlparser')
 
 class TemplateCompiler(object):
-    splitter1 = re.compile(r'([\[\]\$])')
-    splitter2 = re.compile(r'({[^{}]+})')
+    option_split = re.compile(r'([\[\]\$])')
+    predicate_split = re.compile(r'({[^{}]+})')
     escape_re = re.compile(r'([\.\?\+\&])')
 
     def escape(self, literal):
@@ -14,7 +14,7 @@ class TemplateCompiler(object):
     def __call__(self, template):
         result = [ '^' ]
 
-        for chunk in self.splitter1.split(template):
+        for chunk in self.option_split.split(template):
             if len(chunk) > 1:
                 s = self.step2(chunk)
                 result.append(s)
@@ -33,7 +33,7 @@ class TemplateCompiler(object):
 
     def step2(self, template):
         result = []
-        for chunk in self.splitter2.split(template):
+        for chunk in self.predicate_split.split(template):
             if len(chunk) > 2:
                 if chunk[0] == '{' and chunk[-1] == '}':
                     s = self.step3(chunk[1:-1])
@@ -51,6 +51,6 @@ class TemplateCompiler(object):
         return result
 
     def step3(self, template):
-        result = r'(?P<%s>[^/]+)' % template
+        result = r'(?P<%s>[^/]+?)' % template
         logger.debug("step3('{%s}'): %s" % (template, result))
         return result
