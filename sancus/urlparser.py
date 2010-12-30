@@ -6,6 +6,10 @@ logger = logging.getLogger('sancus.urlparser')
 class TemplateCompiler(object):
     splitter1 = re.compile(r'([\[\]\$])')
     splitter2 = re.compile(r'({[^{}]+})')
+    escape_re = re.compile(r'([\.\?\+\&])')
+
+    def escape(self, literal):
+        return self.escape_re.sub(r'\\\1', literal)
 
     def __call__(self, template):
         result = [ '^' ]
@@ -21,7 +25,7 @@ class TemplateCompiler(object):
             elif chunk == '$':
                 result.append(r'$')
             elif len(chunk) == 1:
-                result.append(re.escape(chunk))
+                result.append(self.escape(chunk))
 
         result = ''.join(result)
         logger.info("compile(%r): %s" % (template, result))
@@ -34,11 +38,11 @@ class TemplateCompiler(object):
                 if chunk[0] == '{' and chunk[-1] == '}':
                     s = self.step3(chunk[1:-1])
                 else:
-                    s = re.escape(chunk)
+                    s = self.escape(chunk)
             elif len(chunk) == 0:
                 continue
             else:
-                s = re.escape(chunk)
+                s = self.escape(chunk)
 
             result.append(s)
 
