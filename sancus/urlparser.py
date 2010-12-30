@@ -8,8 +8,16 @@ class TemplateCompiler(object):
     splitter2 = re.compile(r'({[^{}]+})')
 
     def __call__(self, template):
-        result = []
-        for chunk in self.splitter1.split(template):
+        if template[-1] == '$':
+            has_end = True
+            template1 = template[:-1]
+        else:
+            has_end = False
+            template1 = template
+
+        result = [ '^' ]
+
+        for chunk in self.splitter1.split(template1):
             if len(chunk) > 1:
                 s = self.step2(chunk)
                 result.append(s)
@@ -20,6 +28,9 @@ class TemplateCompiler(object):
             elif len(chunk) == 1:
                 s = self.literal(chunk)
                 result.append(s)
+
+        if has_end:
+            result.append('$')
 
         result = ''.join(result)
         logger.info("compile(%r): %s" % (template, result))
