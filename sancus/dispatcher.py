@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 #
 from sancus.exc import HTTPNotFound
+from sancus.urlparser import TemplateCompiler
+
 import re
+import logging
+
+logger = logging.getLogger('sancus.dispatcher')
 
 class WSGIMapper(object):
+    compile = TemplateCompiler()
+
     def __init__(self, handle404 = None, reset = False):
         self.patterns = []
         self.reset_routing_args = reset
@@ -29,14 +36,20 @@ class WSGIMapper(object):
         raise NotImplementedError("weak method")
 
     def add_regex(self, expr, handler, factory=True):
+        logger.debug("add_regex(r'%s', %r, %r)" % (expr, handler, factory))
         handler = (factory, handler)
         self.patterns.append((re.compile(expr), handler))
+
+    def add(self, template, handler, *d, **kw):
+        logger.debug("add(%r, %r, ...)" % (template, handler))
+        expr = self.compile(template)
+        return self.add_regex(expr, handler, *d, **kw)
 
     # decorators
     #
     def class_dec_add(self, pattern):
         def wrap(cls):
-            self.add_regex(pattern, cls)
+            self.add(pattern, cls)
             return cls
         return wrap
 
