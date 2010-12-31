@@ -47,9 +47,9 @@ class WSGIMapper(object):
 
     # decorators
     #
-    def class_dec_add(self, pattern):
+    def class_dec_add(self, pattern, *d, **kw):
         def wrap(cls):
-            self.add(pattern, cls)
+            self.add(pattern, cls, *d, **kw)
             return cls
         return wrap
 
