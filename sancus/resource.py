@@ -41,11 +41,11 @@ class BaseResource(Response):
         h = getattr(self, method)
         req = Request(environ)
 
-        pos_params, named_params = environ['wsgiorg.routing_args']
+        pos_args, named_args = environ['wsgiorg.routing_args']
         # remove keys with value None
-        named_params = dict((k, v) for k, v in named_params.iteritems() if v is not None)
+        named_args = dict((k, v) for k, v in named_args.iteritems() if v is not None)
 
-        h(req, **named_params)
+        h(req, **named_args)
 
 class Resource(BaseResource):
     def __init__(self, environ, *d, **kw):
