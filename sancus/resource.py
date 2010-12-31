@@ -2,21 +2,21 @@ from webob import Request, Response
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
 
 class BaseResource(Response):
-    __methods__ = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
+    __methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
     HTTPMovedPermanently = HTTPMovedPermanently
     HTTPNotFound = HTTPNotFound
 
     def HTTPMethodNotAllowed(self, *d, **kw):
-        return HTTPMethodNotAllowed(allow = self.allowed_methods(), *d, **kw)
+        return HTTPMethodNotAllowed(allow = self.supported_methods(), *d, **kw)
 
-    def allowed_methods(self):
+    def supported_methods(self):
         try:
-            return type(self).__allowed_methods__
+            return type(self).__supported_methods
         except:
             l = []
 
-        for method in self.__methods__:
+        for method in self.__methods:
             # no 'HEAD' if not 'GET'
             if method == 'HEAD' and 'GET' not in l:
                 continue
@@ -24,23 +24,26 @@ class BaseResource(Response):
             if callable(getattr(self, method, None)):
                 l.append(method)
 
-        type(self).__allowed_methods__ = l
+        type(self).__supported_methods = l
         return l
 
-    def HEAD(self, req):
-        self.GET(req)
+    def HEAD(self, req, *d, **kw):
+        self.GET(req, *d, **kw)
 
     def __init__(self, environ, *d, **kw):
         method = environ['REQUEST_METHOD']
-        if method not in self.allowed_methods():
+        if method not in self.supported_methods():
             raise self.HTTPMethodNotAllowed()
 
-        h = getattr(self, method)
-
         Response.__init__(self, *d, **kw)
-        self.allow = self.allowed_methods()
+        self.allow = self.supported_methods()
 
-        h(Request(environ))
+        h = getattr(self, method)
+        req = Request(environ)
+
+        pos_params, named_params = environ['wsgiorg.routing_args']
+
+        h(req, **named_params)
 
 class Resource(BaseResource):
     def __init__(self, environ, *d, **kw):
