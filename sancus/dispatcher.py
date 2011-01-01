@@ -19,6 +19,10 @@ class WSGIMapper(object):
     def __call__(self, environ, start_response):
         app = self.find_handler(environ)
         if app:
+            logger.info("%s %s (%s?%s) %r", environ["REQUEST_METHOD"],
+                    environ["SCRIPT_NAME"], environ["PATH_INFO"],
+                    environ["QUERY_STRING"], app[1])
+
             if 'wsgiorg.routing_args' not in environ:
                 environ['wsgiorg.routing_args'] = ((), {})
 
