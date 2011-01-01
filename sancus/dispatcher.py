@@ -19,6 +19,11 @@ class WSGIMapper(object):
     def __call__(self, environ, start_response):
         app = self.find_handler(environ)
         if app:
+            if 'wsgiorg.routing_args' not in environ:
+                environ['wsgiorg.routing_args'] = ((), {})
+
+            environ['wsgiorg.routing_args'][1].update(app[2])
+
             if app[0]:
                 # factory
                 app = app[1](environ)
@@ -35,21 +40,21 @@ class WSGIMapper(object):
     def find_handler(self, environ):
         raise NotImplementedError("weak method")
 
-    def add_regex(self, expr, handler, factory=True):
-        logger.debug("add_regex(r'%s', %r, %r)" % (expr, handler, factory))
-        handler = (factory, handler)
+    def add_regex(self, expr, handler, factory=True, **kw):
+        logger.debug("add_regex(r'%s', %r, %r, %d)" % (expr, handler, factory, len(kw)))
+        handler = (factory, handler, kw)
         self.patterns.append((re.compile(expr), handler))
 
-    def add(self, template, handler, *d, **kw):
+    def add(self, template, handler, **kw):
         logger.debug("add(%r, %r, ...)" % (template, handler))
         expr = self.compile(template)
-        return self.add_regex(expr, handler, *d, **kw)
+        return self.add_regex(expr, handler, **kw)
 
     # decorators
     #
-    def class_dec_add(self, pattern, *d, **kw):
+    def class_dec_add(self, pattern, **kw):
         def wrap(cls):
-            self.add(pattern, cls, *d, **kw)
+            self.add(pattern, cls, **kw)
             return cls
         return wrap
 
