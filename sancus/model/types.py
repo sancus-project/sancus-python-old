@@ -24,15 +24,20 @@ class UUID(TypeDecorator):
         if not value:
             return None
         elif isinstance(value,uuid.UUID):
-            return value.bytes
+            if dialect.name == 'postgresql':
+                return value.hex
+            else:
+                return value.bytes
         else:
             raise ValueError, "value %s is not a valid UUID" % value
 
     def process_result_value(self, value, dialect):
         if not value:
             return None
-        else:
+        else len(value) == 16:
             return uuid.UUID(bytes=value)
+        else:
+            return uuid.UUID(value)
 
     def is_mutable(self):
         return False
