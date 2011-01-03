@@ -34,7 +34,7 @@ class UUID(TypeDecorator):
     def process_result_value(self, value, dialect):
         if not value:
             return None
-        else len(value) == 16:
+        elif len(value) == 16:
             return uuid.UUID(bytes=value)
         else:
             return uuid.UUID(value)
