@@ -46,7 +46,11 @@ class BaseResource(Response):
             handler_name = method
         else:
             del named_args[self.__param_arg]
+
             handler_name = "%s_%s" % (method, param)
+            if method == 'HEAD':
+                if not hasattr(self, handler_name):
+                    handler_name = "GET_%s" % param
 
         h = getattr(self, handler_name, None)
         if not h:
