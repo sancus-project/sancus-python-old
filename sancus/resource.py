@@ -1,16 +1,11 @@
+# -*- coding: utf-8 -*-
 from webob import Request, Response
-from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently
+from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently, HTTPInternalServerError
 
 class BaseResource(Response):
     __methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
     __param_arg = 'param'
-
-    HTTPMovedPermanently = HTTPMovedPermanently
-    HTTPNotFound = HTTPNotFound
-
-    def HTTPMethodNotAllowed(self, *d, **kw):
-        return HTTPMethodNotAllowed(allow = self.supported_methods(), *d, **kw)
 
     def supported_methods(self):
         try:
@@ -29,13 +24,23 @@ class BaseResource(Response):
         type(self).__supported_methods = l
         return l
 
+    # placeholders
+    #
     def HEAD(self, req, *d, **kw):
         self.GET(req, *d, **kw)
 
+    def __before__(self, req):
+        pass
+
+    def __after__(self, req):
+        pass
+
+    # meta functions
+    #
     def __init__(self, environ, *d, **kw):
         method = environ['REQUEST_METHOD']
         if method not in self.supported_methods():
-            raise self.HTTPMethodNotAllowed()
+            raise HTTPMethodNotAllowed(allow = self.supported_methods())
 
         pos_args, named_args = environ['wsgiorg.routing_args']
         # remove keys with value None
@@ -54,13 +59,28 @@ class BaseResource(Response):
 
         h = getattr(self, handler_name, None)
         if not h:
-            raise self.HTTPNotFound()
+            ret = 404
+        else:
+            Response.__init__(self, *d, **kw)
+            self.allow = self.supported_methods()
 
-        Response.__init__(self, *d, **kw)
-        self.allow = self.supported_methods()
+            req = Request(environ)
+            ret = self.__before__(req)
+            if ret is None:
+                try:
+                    ret = h(req, **named_args)
+                except:
+                    self.__after__(req)
+                    raise
 
-        req = Request(environ)
-        h(req, **named_args)
+                self.__after__(req)
+
+        if ret is None:
+            pass
+        elif ret == 404:
+            raise HTTPNotFound()
+        else:
+            raise HTTPInternalServerError("%d returned from handler not supported" % ret)
 
 class Resource(BaseResource):
     def __init__(self, environ, *d, **kw):
@@ -71,11 +91,11 @@ class Resource(BaseResource):
             return BaseResource.__init__(self, environ, *d, **kw)
         elif path_info == '/' and environ['REQUEST_METHOD'] in ('HEAD','GET'):
             # remove trailing slash for GETs
-            h = self.HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
+            h = HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
             qs = environ['QUERY_STRING']
             if len(qs) > 0:
                 h.location += "?" + qs
             raise h
         else:
             # don't accept PATH_INFO in leaves
-            raise self.HTTPNotFound()
+            return 404
