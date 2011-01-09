@@ -23,13 +23,13 @@ class UUID(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if not value:
             return None
-        elif isinstance(value,uuid.UUID):
-            if dialect.name == 'postgresql':
-                return value.hex
-            else:
-                return value.bytes
+        elif not isinstance(value,uuid.UUID):
+            value = uuid.UUID(value)
+
+        if dialect.name == 'postgresql':
+            return value.hex
         else:
-            raise ValueError, "value %s is not a valid UUID" % value
+            return value.bytes
 
     def process_result_value(self, value, dialect):
         if not value:
