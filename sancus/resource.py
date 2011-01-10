@@ -61,10 +61,11 @@ class BaseResource(Response):
         if not h:
             ret = 404
         else:
-            Response.__init__(self, *d, **kw)
+            req = Request(environ)
+
+            Response.__init__(self, *d, request=req, **kw)
             self.allow = self.supported_methods()
 
-            req = Request(environ)
             ret = self.__before__(req)
             if ret is None:
                 try:
