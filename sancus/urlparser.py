@@ -58,6 +58,6 @@ class TemplateCompiler(object):
     def match(self, regex, s):
         m = regex.match(s)
         if not m:
-            return False
+            return False, None, None, None, None
 
         return True, (), m.groupdict(), s[:m.end()], s[m.end():]
