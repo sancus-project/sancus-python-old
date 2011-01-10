@@ -2,7 +2,7 @@
 import string
 from unidecode import unidecode
 
-_valid = string.ascii_lowercase + string.digits + ('.','_','-')
+_valid = string.ascii_lowercase + string.digits + "._-"
 def urlfriendlyname(s, white='_'):
     s = unidecode(s).lower()
 
