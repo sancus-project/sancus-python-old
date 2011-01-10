@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-from sancus.exc import HTTPNotFound
+from sancus.exc import HTTPNotFound, HTTPMovedPermanently, HTTPMethodNotAllowed
 from sancus.urlparser import TemplateCompiler
 
 import re
@@ -53,6 +53,21 @@ class WSGIMapper(object):
         logger.debug("add(%r, %r, ...)" % (template, handler))
         expr = self.compile(template)
         return self.add_regex(expr, handler, **kw)
+
+    def redirect(self, template, location, **methods):
+        if not methods.has_key('GET'):
+            methods['GET'] = True
+        if not methods.has_key('HEAD') and methods.has_key('GET') == True:
+            methods['HEAD'] = True
+
+        methods = tuple(k for k, v in methods.iteritems() if v is True)
+        def redirector(environ, start_response):
+            if environ['REQUEST_METHOD'] in methods:
+                raise HTTPMovedPermanently(location=location)
+            else:
+                raise HTTPMethodNotAllowed(allow = methods)
+
+        self.add(template, redirector, factory=False)
 
     # decorators
     #
