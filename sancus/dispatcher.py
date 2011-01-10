@@ -83,7 +83,7 @@ class PathMapper(WSGIMapper):
         script_name = environ.get('SCRIPT_NAME', '')
         path_info = environ.get('PATH_INFO', '')
         for regex, handler in self.patterns:
-            match, pos_args, named_args, matched_path_info, extra_path_info = self.compile.match(path_info)
+            match, pos_args, named_args, matched_path_info, extra_path_info = self.compile.match(regex, path_info)
             if not match:
                 # Not a match
                 continue
