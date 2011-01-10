@@ -54,3 +54,10 @@ class TemplateCompiler(object):
         result = r'(?P<%s>[^/]+?)' % template
         logger.debug("step3('{%s}'): %s" % (template, result))
         return result
+
+    def match(self, regex, s):
+        m = regex.match(s)
+        if not m:
+            return False
+
+        return True, (), m.groupdict(), s[:m.end()], s[m.end():]

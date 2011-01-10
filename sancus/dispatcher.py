@@ -80,16 +80,13 @@ class WSGIMapper(object):
 class PathMapper(WSGIMapper):
 
     def find_handler(self, environ):
-        # based on the code at http://wsgi.org/wsgi/Specifications/routing_args
-        #
         script_name = environ.get('SCRIPT_NAME', '')
         path_info = environ.get('PATH_INFO', '')
         for regex, handler in self.patterns:
-            match = regex.match(path_info)
+            match, pos_args, named_args, matched_path_info, extra_path_info = self.compile.match(path_info)
             if not match:
+                # Not a match
                 continue
-
-            extra_path_info = path_info[match.end():]
             if extra_path_info and not extra_path_info.startswith('/'):
                 # Not a very good match
                 continue
@@ -99,14 +96,12 @@ class PathMapper(WSGIMapper):
             else:
                 cur_pos, cur_named = environ.get('wsgiorg.routing_args', ((), {}))
 
-            pos_args = match.groups()
-            named_args = match.groupdict()
-
             new_pos = list(cur_pos) + list(pos_args)
             new_named = cur_named.copy()
             new_named.update(named_args)
+
             environ['wsgiorg.routing_args'] = (new_pos, new_named)
-            environ['SCRIPT_NAME'] = script_name + path_info[:match.end()]
+            environ['SCRIPT_NAME'] = script_name + matched_path_info
             environ['PATH_INFO'] = extra_path_info
             return handler
 
