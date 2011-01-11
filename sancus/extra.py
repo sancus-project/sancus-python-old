@@ -2,7 +2,7 @@
 
 class Table(object):
     def __init__(self, **kw):
-        self._fields = kw.copy()
+        self._fields = dict((k, v) for k, v in kw.iteritems() if v is not None)
 
     def __getattr__(self, key, default=None):
         """Maps dict items to attributes"""
@@ -10,10 +10,13 @@ class Table(object):
 
     def __setattr__(self, key, value):
         """Maps attributes to dict items"""
+        d = self._fields
         if key == '_fields':
             object.__setattr__(self, key, value)
-        else:
-            self._fields[key] = value
+        elif value is not None:
+            d[key] = value
+        elif key in d:
+            del d[key]
 
     def copy(self):
         return type(self)(**self._fields)
