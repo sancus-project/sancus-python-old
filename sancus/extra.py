@@ -10,13 +10,15 @@ class Table(object):
 
     def __setattr__(self, key, value):
         """Maps attributes to dict items"""
-        d = self._fields
         if key == '_fields':
             object.__setattr__(self, key, value)
         elif value is not None:
-            d[key] = value
-        elif key in d:
-            del d[key]
+            self._fields[key] = value
+        else:
+            try:
+                del self._fields[key]
+            except KeyError:
+                pass
 
     def copy(self):
         return type(self)(**self._fields)
