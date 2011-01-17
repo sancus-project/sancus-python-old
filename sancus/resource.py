@@ -27,7 +27,7 @@ class BaseResource(Response):
     # placeholders
     #
     def HEAD(self, req, *d, **kw):
-        self.GET(req, *d, **kw)
+        return self.GET(req, *d, **kw)
 
     def __before__(self, req):
         pass
