@@ -80,6 +80,8 @@ class BaseResource(Response):
             pass
         elif ret == 404:
             raise HTTPNotFound()
+        elif ret == 405:
+            raise HTTPMethodNotAllowed(allow = self.supported_methods())
         else:
             raise HTTPInternalServerError("%d returned from handler not supported" % ret)
 
