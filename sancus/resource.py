@@ -3,17 +3,17 @@ from webob import Request, Response
 from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently, HTTPInternalServerError
 
 class BaseResource(Response):
-    __methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
+    _methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
-    __param_arg = 'param'
+    __param_arg__ = 'param'
 
     def supported_methods(self):
         try:
-            return type(self).__supported_methods
+            return type(self)._supported_methods
         except:
             l = []
 
-        for method in self.__methods:
+        for method in self._methods:
             # no 'HEAD' if not 'GET'
             if method == 'HEAD' and 'GET' not in l:
                 continue
@@ -21,7 +21,7 @@ class BaseResource(Response):
             if callable(getattr(self, method, None)):
                 l.append(method)
 
-        type(self).__supported_methods = l
+        type(self)._supported_methods = l
         return l
 
     # placeholders
@@ -46,11 +46,11 @@ class BaseResource(Response):
         # remove keys with value None
         named_args = dict((k, v) for k, v in named_args.iteritems() if v is not None)
 
-        param = named_args.get(self.__param_arg, None)
+        param = named_args.get(self.__param_arg__, None)
         if param is None:
             handler_name = method
         else:
-            del named_args[self.__param_arg]
+            del named_args[self.__param_arg__]
 
             handler_name = "%s_%s" % (method, param)
             if method == 'HEAD':
