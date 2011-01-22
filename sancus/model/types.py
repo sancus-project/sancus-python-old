@@ -1,13 +1,27 @@
 # -*- coding: utf-8 -*-
 #
 
-from sqlalchemy.types import TypeDecorator, TypeEngine
+from sqlalchemy.types import TypeDecorator, TypeEngine, Unicode
 from sqlalchemy import Column
 
 import sqlalchemy.dialects.postgresql as pg
 import sqlalchemy.types as sa
 
 import uuid
+import string
+
+class SafeFilename(TypeDecorator):
+    impl = Unicode
+    _valid_chars = string.ascii_lowercase + string.digits + "._-"
+    _white = '_'
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            s = value.lower()
+            s = ''.join(c if c in type(self)._valid_chars else type(self)._white for c in s).strip(type(self)._white)
+            if len(s) > 0:
+                return s
+        return None
 
 class UUID(TypeDecorator):
     impl = TypeEngine   # placeholder
