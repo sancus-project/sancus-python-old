@@ -48,3 +48,16 @@ class Table(object):
         data = ', '.join(data)
 
         return "Table(%s)" % data
+
+def Tablify(o):
+    if isinstance(o, Table):
+        pass
+    elif isinstance(o, dict):
+        o = Table(**o)
+    else:
+        return o
+
+    for k,v in o:
+        o[k] = Tablify(v)
+
+    return o
