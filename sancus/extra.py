@@ -20,6 +20,20 @@ class Table(object):
             except KeyError:
                 pass
 
+    def __setitem__(self, key, value):
+        """Also act as a dict"""
+        if value is not None:
+            self._fields[key] = value
+        else:
+            try:
+                del self._fields[key]
+            except KeyError:
+                pass
+
+    def __getitem__(self, key, default=None):
+        """Also act as a dict"""
+        return self._fields.get(key, default)
+
     def copy(self):
         return type(self)(**self._fields)
 
