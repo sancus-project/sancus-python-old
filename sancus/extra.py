@@ -30,4 +30,4 @@ class Table(object):
 
         data = ', '.join(data)
 
-        return "Table(%s)" % data,
+        return "Table(%s)" % data
