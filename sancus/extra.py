@@ -37,6 +37,9 @@ class Table(object):
     def copy(self):
         return type(self)(**self._fields)
 
+    def __iter__(self):
+        return self._fields.iteritems()
+
     def __repr__(self):
         data = []
         for k,v in self._fields.iteritems():
