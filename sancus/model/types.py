@@ -24,7 +24,7 @@ class SafeFilename(TypeDecorator):
         return None
 
 class UUID(TypeDecorator):
-    impl = TypeEngine   # placeholder
+    impl = sa.String   # placeholder, 0.7.1 doesn't like TypeEngine there
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
