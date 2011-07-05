@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from webob import Request, Response
-from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPMovedPermanently, HTTPInternalServerError
+from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPBadRequest, HTTPMovedPermanently, HTTPInternalServerError
 
 class BaseResource(Response):
     _methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
@@ -82,6 +82,8 @@ class BaseResource(Response):
             raise HTTPNotFound()
         elif ret == 405:
             raise HTTPMethodNotAllowed(allow = self.supported_methods())
+        elif ret == 400:
+            raise HTTPBadRequest()
         else:
             raise HTTPInternalServerError("%d returned from handler not supported" % ret)
 
