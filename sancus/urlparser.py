@@ -1,7 +1,7 @@
 import re
 import logging
 
-logger = logging.getLogger('sancus.urlparser')
+logger = logging.getLogger(__name__)
 
 class TemplateCompiler(object):
     option_split = re.compile(r'([\[\]\$])')
@@ -28,7 +28,7 @@ class TemplateCompiler(object):
                 result.append(self.escape(chunk))
 
         result = ''.join(result)
-        logger.info("compile(%r): %s" % (template, result))
+        logger.debug("compile(%r): %s" % (template, result))
         return result
 
     def step2(self, template):
