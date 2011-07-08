@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 
-from sqlalchemy.types import TypeDecorator, TypeEngine, Unicode
+from sqlalchemy.types import TypeDecorator, TypeEngine
 from sqlalchemy import Column
 
 import sqlalchemy.dialects.postgresql as pg
@@ -10,8 +10,12 @@ import sqlalchemy.types as sa
 import uuid
 import string
 
+if sa.__version__ == '0.7.1':
+    # 0.7.1 doesn't like TypeEngine as impl
+    TypeEngine = sa.String
+
 class SafeFilename(TypeDecorator):
-    impl = Unicode
+    impl = sa.Unicode
     _valid_chars = string.ascii_lowercase + string.digits + "._-"
     _white = '_'
 
@@ -24,7 +28,7 @@ class SafeFilename(TypeDecorator):
         return None
 
 class UUID(TypeDecorator):
-    impl = sa.String   # placeholder, 0.7.1 doesn't like TypeEngine there
+    impl = TypeEngine
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
