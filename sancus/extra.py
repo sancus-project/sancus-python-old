@@ -54,6 +54,9 @@ def Tablify(o):
         pass
     elif isinstance(o, dict):
         o = Table(**o)
+    elif isinstance(o, tuple) or isinstance(o, list):
+        for i in range(len(o)):
+            o[i] = Tablify(o[i])
     else:
         return o
 
