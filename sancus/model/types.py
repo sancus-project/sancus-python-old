@@ -27,6 +27,17 @@ class SafeFilename(TypeDecorator):
                 return s
         return None
 
+class BLOB(TypeDecorator):
+    impl = TypeEngine
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            t = pg.BYTEA
+        else:
+            t = sa.BLOB
+
+        return dialect.type_descriptor(t)
+
 class UUID(TypeDecorator):
     impl = TypeEngine
 
