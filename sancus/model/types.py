@@ -71,14 +71,22 @@ class UUID(TypeDecorator):
     def is_mutable(self):
         return False
 
+def _UUID_PK_Column(name, default):
+    if name:
+        return Column(name, UUID(), primary_key=True, default=default)
+    else:
+        return Column(UUID(), primary_key=True, default=default)
 
-def UUID_PK_Column(name=None, node=None, clock_seq=None):
+def UUID1_PK_Column(name=None, node=None, clock_seq=None):
     # sqlalchemy passes self to the default function, so we need
     # a wrapper to protect it, and we take the chance to allow arguments
     def UUID1_Generator(self):
         return uuid.uuid1(node, clock_seq)
 
-    if name:
-        return Column(name, UUID(), primary_key=True, default=UUID1_Generator)
-    else:
-        return Column(UUID(), primary_key=True, default=UUID1_Generator)
+    return _UUID_PK_Column(name, UUID1_Generator)
+
+def UUID_PK_Column(name=None):
+    def UUID_Generator(self):
+        return uuid.uuid4()
+
+    return _UUID_PK_Column(name, UUID_Generator)
