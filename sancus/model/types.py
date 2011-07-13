@@ -5,7 +5,7 @@ from sqlalchemy.types import TypeDecorator, TypeEngine
 from sqlalchemy import Column
 
 import sqlalchemy.dialects.postgresql as pg
-import sqlalchemy.types as sa
+import sqlalchemy as sa
 
 import uuid
 import string
