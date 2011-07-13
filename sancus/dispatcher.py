@@ -75,6 +75,29 @@ class WSGIMapper(object):
 
 class PathMapper(WSGIMapper):
 
+    request_uri_pattern = re.compile(r'([^?#]+)')
+
+    def __init__(self, request_uri=False, **kw):
+        WSGIMapper.__init__(self, **kw)
+        self.use_request_uri = request_uri
+
+    def __call__(self, environ, start_response):
+        if self.use_request_uri:
+            script_name = environ.get('SCRIPT_NAME', '')
+            request_uri = environ.get('REQUEST_URI', '')
+
+            m = PathMapper.request_uri_pattern.match(request_uri)
+            assert(m, 'Invalid REQUEST_URI: %s' % request_uri)
+
+            path_info = environ['REQUEST_URI_PATH'] = m.groups()[0]
+            if len(script_name) > 0:
+                assert(path_info.startswith(script_name))
+                path_info = path_info[len(script_name):]
+
+            environ['PATH_INFO'] = path_info
+
+        return WSGIMapper.__call__(self, environ, start_response)
+
     def find_handler(self, environ):
         script_name = environ.get('SCRIPT_NAME', '')
         path_info = environ.get('PATH_INFO', '')
