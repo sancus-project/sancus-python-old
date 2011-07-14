@@ -2,6 +2,10 @@
 from webob import Request, Response
 import sancus.exc as exc
 
+import logging
+
+_log = logging.getLogger(__name__)
+
 class BaseResource(Response):
     _methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
@@ -84,7 +88,10 @@ class BaseResource(Response):
             raise exc.HTTPMethodNotAllowed(allow = self.supported_methods())
         elif ret == 400:
             raise exc.HTTPBadRequest()
+        elif ret == 503:
+            raise exc.HTTPServiceUnavailable()
         else:
+            _log.warn("%r returned %r" % ret)
             raise exc.HTTPInternalServerError("%d returned from handler not supported" % ret)
 
 class Resource(BaseResource):
