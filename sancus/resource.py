@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from webob import Request, Response
-from sancus.exc import HTTPNotFound, HTTPMethodNotAllowed, HTTPBadRequest, HTTPMovedPermanently, HTTPInternalServerError
+import sancus.exc as exc
 
 class BaseResource(Response):
     _methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
@@ -40,7 +40,7 @@ class BaseResource(Response):
     def __init__(self, environ, *d, **kw):
         method = environ['REQUEST_METHOD']
         if method not in self.supported_methods():
-            raise HTTPMethodNotAllowed(allow = self.supported_methods())
+            raise exc.HTTPMethodNotAllowed(allow = self.supported_methods())
 
         pos_args, named_args = environ['wsgiorg.routing_args']
         # remove keys with value None
@@ -79,13 +79,13 @@ class BaseResource(Response):
         if ret is None:
             pass
         elif ret == 404:
-            raise HTTPNotFound()
+            raise exc.HTTPNotFound()
         elif ret == 405:
-            raise HTTPMethodNotAllowed(allow = self.supported_methods())
+            raise exc.HTTPMethodNotAllowed(allow = self.supported_methods())
         elif ret == 400:
-            raise HTTPBadRequest()
+            raise exc.HTTPBadRequest()
         else:
-            raise HTTPInternalServerError("%d returned from handler not supported" % ret)
+            raise exc.HTTPInternalServerError("%d returned from handler not supported" % ret)
 
 class Resource(BaseResource):
     def __init__(self, environ, *d, **kw):
@@ -96,7 +96,7 @@ class Resource(BaseResource):
             return BaseResource.__init__(self, environ, *d, **kw)
         elif path_info == '/' and environ['REQUEST_METHOD'] in ('HEAD','GET'):
             # remove trailing slash for GETs
-            h = HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
+            h = exc.HTTPMovedPermanently(location = environ['SCRIPT_NAME'])
             qs = environ['QUERY_STRING']
             if len(qs) > 0:
                 h.location += "?" + qs
