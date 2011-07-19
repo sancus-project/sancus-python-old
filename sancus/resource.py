@@ -67,6 +67,10 @@ class BaseResource(Response):
         if not h:
             ret = 404
         else:
+            # add data to environ
+            environ['sancus.args'] = named_args
+            environ['sancus.handler'] = handler_name
+
             req = Request(environ)
 
             Response.__init__(self, *d, request=req, **kw)
