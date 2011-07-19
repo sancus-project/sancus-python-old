@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from webob import Request, Response
+from urllib import quote_plus, unquote_plus
+
 import sancus.exc as exc
 
 import logging
@@ -111,3 +113,9 @@ class Resource(BaseResource):
         else:
             # don't accept PATH_INFO in leaves
             return 404
+
+def unicode_to_url(s):
+    return quote_plus(s.encode('utf-8'))
+
+def url_to_unicode(s):
+    return unicode(unquote_plus(s), 'utf-8')
