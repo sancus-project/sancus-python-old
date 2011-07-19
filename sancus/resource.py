@@ -80,11 +80,8 @@ class BaseResource(Response):
             if ret is None:
                 try:
                     ret = h(req, **named_args)
-                except:
+                finally:
                     self.__after__(req)
-                    raise
-
-                self.__after__(req)
 
         if ret is None:
             pass
