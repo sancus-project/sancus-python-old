@@ -6,15 +6,14 @@ from sancus.urlparser import TemplateCompiler
 import re
 import logging
 
-logger = logging.getLogger('sancus.dispatcher')
-
 class WSGIMapper(object):
     compile = TemplateCompiler()
 
-    def __init__(self, handle404 = None, reset = False):
+    def __init__(self, handle404 = None, reset = False, logger = None):
         self.patterns = []
         self.reset_routing_args = reset
         self.handle404 = handle404
+        self.logger = logger if logger else logging.getLogger(__name__)
 
     def __call__(self, environ, start_response):
         app = self.find_handler(environ)
@@ -41,12 +40,10 @@ class WSGIMapper(object):
         raise NotImplementedError("weak method")
 
     def add_regex(self, expr, handler, factory=True, **kw):
-        logger.debug("add_regex(r'%s', %r, %r, %d)" % (expr, handler, factory, len(kw)))
         handler = (factory, handler, kw)
         self.patterns.append((re.compile(expr), handler))
 
     def add(self, template, handler, **kw):
-        logger.debug("add(%r, %r, ...)" % (template, handler))
         expr = self.compile(template)
         return self.add_regex(expr, handler, **kw)
 
@@ -123,7 +120,7 @@ class PathMapper(WSGIMapper):
             environ['SCRIPT_NAME'] = script_name + matched_path_info
             environ['PATH_INFO'] = extra_path_info
 
-            logger.info("%s %s (%s?%s) %r", environ["REQUEST_METHOD"],
+            self.logger.info("%s %s (%s?%s) %r", environ["REQUEST_METHOD"],
                 environ["SCRIPT_NAME"], environ["PATH_INFO"],
                 environ["QUERY_STRING"], handler[1])
 
