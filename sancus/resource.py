@@ -5,13 +5,13 @@ from urllib import quote_plus, unquote_plus
 import sancus.exc as exc
 
 import logging
-
 _log = logging.getLogger(__name__)
 
 class BaseResource(Response):
     _methods = ('GET', 'HEAD', 'POST', 'PUT', 'DELETE')
 
     __param_arg__ = 'param'
+    __logger__ = _log
 
     def supported_methods(self):
         try:
@@ -44,6 +44,7 @@ class BaseResource(Response):
     # meta functions
     #
     def __init__(self, environ, *d, **kw):
+        log = type(self).__logger__
         method = environ['REQUEST_METHOD']
         if method not in self.supported_methods():
             raise exc.HTTPMethodNotAllowed(allow = self.supported_methods())
@@ -78,6 +79,7 @@ class BaseResource(Response):
 
             ret = self.__before__(req)
             if ret is None:
+                log.debug('h:%r, named_args:%r' % (h, named_args))
                 try:
                     ret = h(req, **named_args)
                 finally:
@@ -94,7 +96,7 @@ class BaseResource(Response):
         elif ret == 503:
             raise exc.HTTPServiceUnavailable()
         else:
-            _log.warn("%r returned %r" % ret)
+            log.warn("%r returned %r" % (h, ret))
             raise exc.HTTPInternalServerError("%d returned from handler not supported" % ret)
 
 class Resource(BaseResource):
