@@ -36,6 +36,7 @@ class WSGIMapper(object):
         raise NotImplementedError("weak method")
 
     def add_regex(self, expr, handler, factory=True, **kw):
+        self.logger.debug('add_regex(%r, %r, factory=%s)' % (expr, handler, factory))
         handler = (factory, handler, kw)
         self.patterns.append((re.compile(expr), handler))
 
