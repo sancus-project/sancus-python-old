@@ -16,21 +16,17 @@ class WSGIMapper(object):
         self.logger = logger if logger else logging.getLogger(__name__)
 
     def __call__(self, environ, start_response):
-        app = self.find_handler(environ)
-        if app:
+        factory, handler, kw = self.find_handler(environ)
+        if handler:
             if 'wsgiorg.routing_args' not in environ:
                 environ['wsgiorg.routing_args'] = ((), {})
 
-            environ['wsgiorg.routing_args'][1].update(app[2])
+            environ['wsgiorg.routing_args'][1].update(kw)
 
-            if app[0]:
-                # factory
-                app = app[1](environ)
-            else:
-                # direct
-                app = app[1]
+            if factory:
+                handler = handler(environ)
 
-            return app(environ, start_response)
+            return handler(environ, start_response)
         elif self.handle404:
             return self.handle404(environ, start_response)
         else:
