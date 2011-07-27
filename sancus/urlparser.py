@@ -51,7 +51,7 @@ class TemplateCompiler(object):
         return result
 
     def step3(self, template):
-        result = r'(?P<%s>[^/]+?)' % template
+        result = r'(?P<%s>[^/]+)' % template
         logger.debug("step3('{%s}'): %s" % (template, result))
         return result
 
