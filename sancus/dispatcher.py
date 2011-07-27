@@ -99,6 +99,7 @@ class PathMapper(WSGIMapper):
     def find_handler(self, environ):
         script_name = environ.get('SCRIPT_NAME', '')
         path_info = environ.get('PATH_INFO', '')
+
         for regex, handler in self.patterns:
             match, pos_args, named_args, matched_path_info, extra_path_info = self.compile.match(regex, path_info)
             if not match:
@@ -106,6 +107,8 @@ class PathMapper(WSGIMapper):
                 continue
             if extra_path_info and not extra_path_info.startswith('/'):
                 # Not a very good match
+                self.logger.debug("NOT GOOD MATCH - %r -> %r + %r",
+                        path_info, matched_path_info, extra_path_info)
                 continue
 
             if self.reset_routing_args:
