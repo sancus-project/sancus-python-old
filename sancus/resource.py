@@ -122,3 +122,13 @@ def unicode_to_url(s):
 
 def url_to_unicode(s):
     return unicode(unquote_plus(s), 'utf-8')
+
+def get_string(d, key, fallback=None):
+    try:
+        v = d[key].strip()
+        if len(v) > 0:
+            return v
+    except KeyError:
+        pass
+
+    return fallback
