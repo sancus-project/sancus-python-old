@@ -54,10 +54,13 @@ class WSGIMapper(object):
         if not methods.has_key('HEAD') and methods.has_key('GET') == True:
             methods['HEAD'] = True
 
+        if not callable(location):
+            location = lambda x: location
+
         methods = tuple(k for k, v in methods.iteritems() if v is True)
         def redirector(environ, start_response):
             if environ['REQUEST_METHOD'] in methods:
-                raise HTTPMovedPermanently(location=location)
+                raise HTTPMovedPermanently(location=location(environ))
             else:
                 raise HTTPMethodNotAllowed(allow = methods)
 
@@ -85,7 +88,7 @@ class PathMapper(WSGIMapper):
             request_uri = environ.get('REQUEST_URI', '')
 
             m = PathMapper.request_uri_pattern.match(request_uri)
-            assert(m, 'Invalid REQUEST_URI: %s' % request_uri)
+            assert m, 'Invalid REQUEST_URI: %s' % request_uri
 
             path_info = environ['REQUEST_URI_PATH'] = m.groups()[0]
             if len(script_name) > 0:
