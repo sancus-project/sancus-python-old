@@ -35,16 +35,9 @@ class BaseResource(Response):
     def HEAD(self, req, *d, **kw):
         return self.GET(req, *d, **kw)
 
-    def __before__(self, req):
-        pass
-
-    def __after__(self, req):
-        pass
-
     # meta functions
     #
     def __init__(self, environ, *d, **kw):
-        log = type(self).__logger__
         method = environ['REQUEST_METHOD']
         if method not in self.supported_methods():
             raise exc.HTTPMethodNotAllowed(allow = self.supported_methods())
@@ -66,27 +59,27 @@ class BaseResource(Response):
 
         h = getattr(self, handler_name, None)
         if not h:
-            ret = 404
+            raise exc.HTTPNotFound()
         else:
             # add data to environ
             environ['sancus.args'] = named_args
-            environ['sancus.handler'] = handler_name
+            environ['sancus.handler_name'] = handler_name
+            environ['sancus.handler'] = h
 
             req = Request(environ)
 
             Response.__init__(self, *d, request=req, **kw)
             self.allow = self.supported_methods()
 
-            ret = self.__before__(req)
-            if ret is None:
-                log.debug('h:%r, named_args:%r' % (h, named_args))
-                try:
-                    ret = h(req, **named_args)
-                finally:
-                    self.__after__(req)
+    def __call__(self, environ, start_response):
+        named_args = environ['sancus.args']
+        handler = environ['sancus.handler']
+
+        self.__logger__.debug('handler:%r, named_args:%r' % (handler, named_args))
+        ret = handler(self.request, **named_args)
 
         if ret is None:
-            pass
+            return Response.__call__(self, environ, start_response)
         elif ret == 404:
             raise exc.HTTPNotFound()
         elif ret == 405:
