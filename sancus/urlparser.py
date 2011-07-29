@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 class TemplateCompiler(object):
     option_split = re.compile(r'([\[\]\$])')
     lookup_split = re.compile(r'({[^{}]+})')
+    lookup_key_values = re.compile(r'([^:]+)(?::(.+))?$')
     escape_re = re.compile(r'([\.\?\+\&])')
 
     def escape(self, literal):
@@ -51,7 +52,24 @@ class TemplateCompiler(object):
         return result
 
     def step3(self, template):
-        result = r'(?P<%s>[^/]+)' % template
+        m = self.lookup_key_values.match(template)
+        assert m, "{%s} bad formed" % template
+        m = m.groups()
+
+        name = m[0]
+        if m[1] == None:
+            s = '[^/]+'
+        else:
+            s = m[1].split('|')
+            for i in range(len(s)):
+                s[i] = self.escape(s[i])
+
+            if len(s) > 1:
+                s = '(%s)' % '|'.join(s)
+            else:
+                s = s[0]
+
+        result = r'(?P<%s>%s)' % (name, s)
         logger.debug("step3('{%s}'): %s" % (template, result))
         return result
 
