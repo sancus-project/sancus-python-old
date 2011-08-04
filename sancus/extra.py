@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 
+class Enum(object):
+    def __init__(self, *d):
+        for i in range(len(d)):
+            setattr(self, d[i], i)
+
 class Table(object):
     def __init__(self, **kw):
         self._fields = dict((k, v) for k, v in kw.iteritems() if v is not None)
