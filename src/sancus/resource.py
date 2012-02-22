@@ -6,6 +6,7 @@ def key_to_int(d, k, fallback=None):
     if k in d:
         v = int(d[k])
     d[k] = v
+    return d[k]
 
 def key_in_enum(d, k, enum, fallback=None):
     """if present, check against the given enum, otherwise set to fallback"""
@@ -14,6 +15,7 @@ def key_in_enum(d, k, enum, fallback=None):
             raise ValueError
     else:
         d[k] = fallback
+    return d[k]
 
 def url_to_unicode(s):
     """url encode a unicode string"""
