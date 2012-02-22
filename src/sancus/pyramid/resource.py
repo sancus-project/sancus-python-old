@@ -1,5 +1,7 @@
 import pyramid.httpexceptions as exc
 
+from sancus.resource import key_to_int, key_in_enum
+
 class Resource(object):
     def supported_methods(self):
         try:
