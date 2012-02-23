@@ -46,5 +46,5 @@ class Resource(object):
         return h(**kw)
 
     # placeholders
-    def HEAD(self, req, *d, **kw):
-        return self.GET(req, *d, **kw)
+    def HEAD(self, *d, **kw):
+        return self.GET(*d, **kw)
