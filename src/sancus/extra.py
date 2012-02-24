@@ -2,6 +2,9 @@ class Table(object):
     def __init__(self, **kw):
         self._fields = dict((k, v) for k, v in kw.iteritems() if v is not None)
 
+    def keys(self):
+        return self._fields.keys()
+
     def __getattr__(self, key, default=None):
         """Maps dict items to attributes"""
         return self._fields.get(key, default)
